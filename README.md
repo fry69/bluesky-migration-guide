@@ -82,13 +82,18 @@ export PATH=$PATH:$HOME/go/bin
 
 Now we can get some information about the account. Before I started the migration process, I decided to add a recovery key to my account/DID document, just to be safe (also to get a feel for how this works), see the [guide](https://whtwnd.com/bnewbold.net/3lj7jmt2ct72r) already mentioned above.
 
+> [!note]
+> Why recovery keys are important?
+>
+> When you create an account the PDS holds keys for signing your records. This means a rogue operator PDS could overtake your account, or more mundane things like the PDS loses all data including your siging keys could happen. In this case a recovery key gives you at least control back over your identity (including your followers). In such a catastrophic scenario you can restore a backup of your account on a different PDS and initiate PLC operation to point it at that new PDS with such a recovery key.
+
 First I have to login to my account:
 ```shell
 goat account login -u fry69.dev -p '[old_pw]'
 ```
 > [!warning]
->Once logged in destructive operations with `goat` are possible, like deleting records.
->PLC operations (changing the DID document) require a separate token via email.
+> Once logged in destructive operations with `goat` are possible, like deleting records.
+> PLC operations (changing the DID document) require a separate token via email.
 
 This commands give an overview of the statue of the account, included if it is active, how many records/blobs it references:
 ```shell
@@ -150,7 +155,7 @@ Public Key (DID Key Syntax): share or publish this (eg, in DID document)
 	did:key:zDnaenr1u5hpX7AznPRZ2kgTzpoFdEYRiPrZMyzmXFGFgGkTY
 ```
 > [!warning]
->Keep the secret key safe, whoever has control of this key can take over your account
+> Keep the secret key safe, whoever has control of this key can take over your account
 
 Now I tried to add the key to my DID document, but the token I used was already expired (maybe less than an hour lifetime?):
 ```
@@ -231,12 +236,14 @@ error: failed creating new account: XRPC ERROR 400: AlreadyExists: Repo already 
 ```
 Even if I delete the stale inactive account and try the automation process again, I run into the same `timeout` problem as above.
 
-> [!note] How to delete a stale account
->In my case I deleted the stale account directly on my PDS server with this command:
-> ```shell
+> [!note]
+> How do I delete a stale account?
+>
+> In my case I deleted the stale account directly on my PDS server with this command:
+>```shell
 >pdsadmin account delete did:plc:3zxgigfubnv4f47ftmqdsbal
-> ```
->The `did:plc` DID must be the real DID. This is safe, since this is only a stale, inactive copy of my real account, which still resided on the mushroom PDS at this point.
+>```
+> The `did:plc` DID must be the real DID. This is safe, since this is only a stale, inactive copy of my real account, which still resided on the mushroom PDS at this point.
 
 So I have to use the manual migration process, which is a little more involved. First make sure that any stale account is removed, see above. Also make sure you are logged into the mushroom account with `goat`.
 
@@ -275,8 +282,10 @@ $ goat repo export fry69.dev
 downloading from https://cordyceps.us-west.host.bsky.network to: fry69.dev.20250504094733.car
 ```
 The CAR file this generated is about ~30 MB in size for my ~10k posts and other records.
-> [!note] What the heck is CAR?
->The standard file format for storing data objects is Content Addressable aRchives (CAR). The standard repository export format for atproto repositories is [CAR v1](https://ipld.io/specs/transport/car/carv1/), which have file suffix `.car` and mimetype `application/vnd.ipld.car`. See [here](https://atproto.com/specs/repository#car-file-serialization) for more details.
+> [!note]
+> What the heck is CAR?
+>
+> The standard file format for storing data objects is Content Addressable aRchives (CAR). The standard repository export format for atproto repositories is [CAR v1](https://ipld.io/specs/transport/car/carv1/), which have file suffix `.car` and mimetype `application/vnd.ipld.car`. See [here](https://atproto.com/specs/repository#car-file-serialization) for more details.
 
 Now it is time to download my ~800 (~1 GB in size total) blobs. This is a slow process, it took ~1 hour with a fast down link, the limiting factor is the mushroom PDS. And of course it failed in the middle of the process:
 ```shell
@@ -319,11 +328,11 @@ DID: did:plc:3zxgigfubnv4f47ftmqdsbal
 Handle: fry69.altq.net
 ```
 > [!note]
->It may be possible to reuse the existing handle (`fry69.dev`) and email address, I used different ones, because I was unsure. I'd love feedback on this.
->
+> It may be possible to reuse the existing handle (`fry69.dev`) and email address, I used different ones, because I was unsure. I'd love feedback on this.
 
 With this fresh account in place it is time to login to the new PDS and import the data:
-> [!warning] Login change
+> [!warning]
+> Login change
 
 ```
 $ goat account login --pds-host "https://altq.net" -u "did:plc:3zxgigfubnv4f47ftmqdsbal" -p "[new_pw]"
@@ -407,11 +416,13 @@ $ goat blob upload fry69.dev_blobs/bafkreifh3ix2tgaqt6hkjp222kreejcpgypebanr5tj6
 error: request failed: Post "https://altq.net/xrpc/com.atproto.repo.uploadBlob": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
 ```
 > [!note]
-This led to a side quest finding out that my PDS was still set to the original 50 MB upload limit, but the mushroom PDS raised this to 100 MB and 3 minute length for movies a while after I set up the PDS. Solution for this problem is changing the following line in the `/pds/pds.env` file on the PDS server:
+> Hitting the PDS Upload Limit
+> 
+> This led to a side quest finding out that my PDS was still set to the original 50 MB upload limit, but the mushroom PDS raised this to 100 MB and 3 minute length for movies a while after I set up the PDS. Solution for this problem is changing the following line in the `/pds/pds.env` file on the PDS server:
 >```shell
 >PDS_BLOB_UPLOAD_LIMIT=104857600
 >```
->Don't forget to restart the PDS (reboot or `systemctl restart pds`) afterwards.
+> Don't forget to restart the PDS (reboot or `systemctl restart pds`) afterwards.
 
 With that fix in place, the upload of the missing blob worked fine:
 ```shell
@@ -548,7 +559,8 @@ $ cat new_plc_signed.json
 }
 ```
 Now let's submit the new DID document. Of it failed because I was dumb:
-> [!warning] PLC Operation / DID Document Update Ahead
+> [!warning]
+> PLC Operation / DID Document Update Ahead
 ```shell
 $ goat account plc submit ./new_plc_signed.json 
 error: failed submitting PLC op via PDS: XRPC ERROR 400: InvalidRequest: Incorrect handle in alsoKnownAs
@@ -579,3 +591,13 @@ Host: https://altq.net
 🎉 `validDid: true` yay! 🎉
 
 But my handle now was `@fry69.altq.net`. This was easily solvable by using the using the change handle feature in the official web client to set it back to `@fry69.dev`.
+
+What happens with the old account on the mushroom PDS?
+
+I am glad you asked. This is currently unclear. If you login to your mushroom account with the official https://bsky.app/ web client (this is still possible, choose Bluesky social as your host during login), you will notice that the timeline will not load. But you can get to the settings page and from there to the account and try do delete your account. This will currently not work, as the deletetion process tries to also delete your chats (which you certainly want to keep). I made an issue about this here -> https://github.com/bluesky-social/atproto/issues/3848
+
+The best you can do is to deactivate the account in the web client or with `goat` like this:
+```shell
+$ goat account login -u fry69.dev -p '[old_pw]' --pds-host "https://cordyceps.us-west.host.bsky.network"
+$ goat account deactivate
+```
