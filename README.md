@@ -7,7 +7,7 @@ Here is a write up of my experience moving my account to my own PDS. At that poi
 - ~800 blobs, some of them short movies
 - a bit under 1 GB in total size
 
-This led to some problems while trying to migrate with the recommended automatic migration function in the [goat](https://github.com/bluesky-social/indigo/cmd/goat) command line tool. For posterity I'll describe here what I did, the problems I encountered and how to work around them with some explanations what is happening.
+This led to some problems while trying to migrate with the recommended automatic migration function in the [goat](https://github.com/bluesky-social/indigo/tree/main/cmd/goat) command line tool. For posterity I'll describe here what I did, the problems I encountered and how to work around them with some explanations what is happening.
 
 ---
 
