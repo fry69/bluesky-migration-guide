@@ -504,9 +504,9 @@ $ goat account plc current
   }
 }
 ```
-Now edit the `new_plc.json` with you favorite editor and add e.g. the additional recovery key to the proposed new DID document (note that I got carried away and changed the `alsoKnownAs` field, do not do this):
+Now edit the `plc_new.json` with you favorite editor and add e.g. the additional recovery key to the proposed new DID document (note that I got carried away and changed the `alsoKnownAs` field, do not do this):
 ```shell
-$ cat new_plc.json 
+$ cat plc_new.json
 {
   "alsoKnownAs": [
     "at://fry69.dev"
@@ -531,11 +531,11 @@ Now it is necessary to login to the mushroom account, which has a pointer to the
 $ goat account login -u fry69.dev -p '[old_pw]'
 $ goat account plc request-token
 Success; check email for token.
-$ goat account plc sign --token [token] ./new_plc.json > new_plc_signed.json
+$ goat account plc sign --token [token] ./plc_new.json > plc_new_signed.json
 ```
 The signed DID document should look like this:
 ```shell
-$ cat new_plc_signed.json 
+$ cat plc_new_signed.json
 {
   "prev": "bafyreic6drt4uv43zrsd54lexmwwvg72dnlswjyqizstjttkuovlyqq4n4",
   "type": "plc_operation",
@@ -562,17 +562,17 @@ Now let's submit the new DID document. Of it failed because I was dumb:
 > [!warning]
 > PLC Operation / DID Document Update Ahead
 ```shell
-$ goat account plc submit ./new_plc_signed.json 
+$ goat account plc submit ./plc_new_signed.json
 error: failed submitting PLC op via PDS: XRPC ERROR 400: InvalidRequest: Incorrect handle in alsoKnownAs
 ```
 And no, just changing the `alsoKnownAs` field to the correct value does not work, as this invalidates the signature (as expected, but good to see this working as intended):
 ```shell
-$ goat account plc submit ./new_plc_signed.json 
+$ goat account plc submit ./plc_new_signed.json
 error: failed submitting PLC op via PDS: XRPC ERROR 400: InvalidRequest: Invalid signature on op: {"type":"plc_operation","rotationKeys":["did:key:zQ3shcFsHHoawNae6vDx4HNamQVZEVrcQ1Uc2gwi5f9qxR6Xi","did:key:zDnaenr1u5hpX7AznPRZ2kgTzpoFdEYRiPrZMyzmXFGFgGkTY"],"verificationMethods":{"atproto":"did:key:zQ3shSuymtEUXUsN1pyZACZ6WGk3Tktxe4s1JyL4CSWLRWaZa"},"alsoKnownAs":["at://fry69.altq.net"],"services":{"atproto_pds":{"type":"AtprotoPersonalDataServer","endpoint":"https://altq.net"}},"prev":
 ```
-To fix this, I had to sign the fixed `new_plc.json` again, with a new requested token from the PLC. This finally worked:
+To fix this, I had to sign the fixed `plc_new.json` again, with a new requested token from the PLC. This finally worked:
 ```shell
-$ goat account plc submit ./new_plc_signed.json
+$ goat account plc submit ./plc_new_signed.json
 $ goat account status
 DID: did:plc:3zxgigfubnv4f47ftmqdsbal
 Host: https://altq.net
