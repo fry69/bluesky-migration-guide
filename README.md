@@ -29,10 +29,6 @@ Optional links:
 - [atproto browser](https://atproto-browser.vercel.app/) - Bare bones atproto browser
 - [atp tools](https://atp.tools/) - Another useful atproto browser/tools implementation
 
-Support links:
-- [PDS Admin Discord](https://discord.gg/e7hpHxRfBP) - Ask here for help with the reference PDS installation
-- [API Touchers Discord](https://discord.gg/YQCqC6zd) - Ask here for in-depth questions about atproto
-
 ---
 
 Now let's start. When I decided to migrate my account, I first had a look at it's current state with `pdsls.dev`:
