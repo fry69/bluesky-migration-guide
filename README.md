@@ -560,6 +560,10 @@ $ cat plc_new_signed.json
   "sig": "zPhjYO_DMby4Ky-mHhIjLTAv4hrhiGQtofn0QoLMjRtj_s64-dZPVZ8kQSe1WOgzScwHVa5jL6dy-NzIIjzaww"
 }
 ```
+Now login to the new PDS before submitting (otherwise you'll get an error about rotation keys):
+```shell
+$ goat account login --pds-host "https://altq.net" -u "did:plc:3zxgigfubnv4f47ftmqdsbal" -p "[new_pw]"
+```
 Now let's submit the new DID document. Of it failed because I was dumb:
 > [!warning]
 > PLC Operation / DID Document Update Ahead
