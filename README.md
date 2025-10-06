@@ -7,11 +7,17 @@ Here is a write up of my experience moving my account to my own PDS. At that poi
 - ~800 blobs, some of them short movies
 - a bit under 1 GB in total size
 
-This led to some problems while trying to migrate with the recommended automatic migration function in the [goat](https://github.com/bluesky-social/indigo/tree/main/cmd/goat) command line tool. For posterity I'll describe here what I did, the problems I encountered and how to work around them with some explanations what is happening.
+This led to some problems while trying to migrate with the recommended automatic migration function in the [goat](https://github.com/bluesky-social/goat) command line tool. For posterity I'll describe here what I did, the problems I encountered and how to work around them with some explanations what is happening.
 
 ---
 
 First here are some useful links:
+
+Web based migration tools:
+- [ATP Airport](https://atpairport.com/) - "Your terminal for seamless AT Protocol PDS migration and backup." by [Roscoe Rubin-Rottenberg](https://bsky.app/profile/knotbin.com)
+- [PDS Moover](https://pdsmoover.com/) - Cow themed migration tool by [Bailey Townsend](https://bsky.app/profile/baileytownsend.dev)
+
+General documentation:
 - [PDS Self-hosting](https://atproto.com/guides/self-hosting) - Official PDS self-host instructions
 - [GitHub PDS](https://github.com/bluesky-social/pds) - Official PDS reference implementation (Docker) with installation instructions
 - [Migration instructions](https://whtwnd.com/did:plc:44ybard66vv44zksje25o7dz/3l5ii332pf32u) by @bnewbold.net
@@ -67,7 +73,7 @@ brew install go
 ```
 This fetches, compiles, and installs the `goat` tool:
 ```shell
-go install github.com/bluesky-social/indigo/cmd/goat@latest
+go install github.com/bluesky-social/goat@latest
 ```
 This adds the path where compiled Go binares to the system lookup path:
 ```shell
@@ -138,12 +144,12 @@ Here is the workflow for adding a recovery key to the DID document:
 
 Save the current DID document to compare it later:
 ```
-$ goat account plc current >plc-current.json
+$ goat account plc current > plc-current.json
 ```
 Generate a recovery key and (optionally) save it in a file:
 ```
-$ goat key generate >key.txt
-$ cat key.txt 
+$ goat key generate > key.txt
+$ cat key.txt
 Key Type: P-256 / secp256r1 / ES256 private key
 Secret Key (Multibase Syntax): save this securely (eg, add to password manager)
 	[secret key]
@@ -170,8 +176,8 @@ Success
 ```
 Get the current, changed DID document and compare it to the old one, to make sure that recovery key is in place and nothing else changed:
 ```
-$ goat account plc current >plc-current-20250429.json
-$ diff -u plc-current.json plc-current-20250429.json 
+$ goat account plc current > plc-current-20250429.json
+$ diff -u plc-current.json plc-current-20250429.json
 --- plc-current.json	2025-04-29 07:56:56
 +++ plc-current-20250429.json	2025-04-29 08:01:12
 @@ -5,7 +5,8 @@
@@ -216,7 +222,7 @@ goat account migrate \
 ```
 This did not work and stopped the migration process repeatedly at the same point:
 ```shell
-$ ./migration.sh 
+$ ./migration.sh
 2025/04/28 16:14:55 INFO new host serviceDID=did:web:altq.net url=https://altq.net
 2025/04/28 16:14:55 INFO creating account on new host handle=fry69.altq.net host=https://altq.net
 2025/04/28 16:14:57 INFO migrating repo
@@ -225,7 +231,7 @@ error: failed importing repo: request failed: Post "https://altq.net/xrpc/com.at
 ```
 The migration guide says `goat` commands can get repeated/retried if something fails, but this does not work for the automatic migration process:
 ```shell
-$ ./migration.sh 
+$ ./migration.sh
 2025/04/28 16:43:57 INFO new host serviceDID=did:web:altq.net url=https://altq.net
 2025/04/28 16:43:57 INFO creating account on new host handle=fry69.altq.net host=https://altq.net
 error: failed creating new account: XRPC ERROR 400: AlreadyExists: Repo already exists
@@ -336,7 +342,7 @@ $ goat account login --pds-host "https://altq.net" -u "did:plc:3zxgigfubnv4f47ft
 
 First step is to upload the repository with the posts, likes, etc. Of course this produced an error:
 ```shell
-$ goat repo import ./fry69.dev.20250504103731.car 
+$ goat repo import ./fry69.dev.20250504103731.car
 2025/05/04 10:58:18 WARN request failed subsystem=RobustHTTPClient error="Post \"https://altq.net/xrpc/com.atproto.repo.importRepo\": net/http: request canceled" method=POST url=https://altq.net/xrpc/com.atproto.repo.importRepo
 error: failed to import repo: request failed: Post "https://altq.net/xrpc/com.atproto.repo.importRepo": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
 ```
@@ -413,7 +419,7 @@ error: request failed: Post "https://altq.net/xrpc/com.atproto.repo.uploadBlob":
 ```
 > [!note]
 > Hitting the PDS Upload Limit
-> 
+>
 > This led to a side quest finding out that my PDS was still set to the original 50 MB upload limit, but the mushroom PDS raised this to 100 MB and 3 minute length for movies a while after I set up the PDS. Solution for this problem is changing the following line in the `/pds/pds.env` file on the PDS server:
 >```shell
 >PDS_BLOB_UPLOAD_LIMIT=104857600
@@ -456,7 +462,7 @@ $ goat account missing-blobs # no output means no blobs are missing, yay!
 The final step is to change the DID document for the account to point to the new PDS (with also has a different verification method/signing key). This may a bit logging in and out between the two accounts if things do not work out. First check the current state of the DID document for new account on the PDS (note the `recommended` as it is not yet uploaded to the DID registry):
 
 ```shell
-$ goat account plc recommended >plc_new.json
+$ goat account plc recommended > plc_new.json
 $ cat plc_new.json
 {
   "alsoKnownAs": [
@@ -588,11 +594,12 @@ Host: https://altq.net
 
 But my handle now was `@fry69.altq.net`. This was easily solvable by using the using the change handle feature in the official web client to set it back to `@fry69.dev`.
 
-What happens with the old account on the mushroom PDS?
+> [!NOTE]
+> What happens with the old account on the mushroom PDS?
+>
+> I am glad you asked. This is currently unclear. If you login to your mushroom account with the official https://bsky.app/ web client (this is still possible, choose Bluesky social as your host during login), you will notice that the timeline will not load. But you can get to the settings page and from there to the account and try do delete your account. This will not work, probably because the deletetion process will try to delete your chats, bookmarks and mutes (which you certainly want to keep), or for some other reason.
 
-I am glad you asked. This is currently unclear. If you login to your mushroom account with the official https://bsky.app/ web client (this is still possible, choose Bluesky social as your host during login), you will notice that the timeline will not load. But you can get to the settings page and from there to the account and try do delete your account. This will currently not work, as the deletetion process tries to also delete your chats (which you certainly want to keep). I made an issue about this here -> https://github.com/bluesky-social/atproto/issues/3848
-
-The best you can do is to deactivate the account in the web client or with `goat` like this:
+You can deactivate your mushroom account in the web client or with `goat` like this:
 ```shell
 $ goat account login -u fry69.dev -p '[old_pw]' --pds-host "https://cordyceps.us-west.host.bsky.network"
 $ goat account deactivate
