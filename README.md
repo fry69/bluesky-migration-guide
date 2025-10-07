@@ -1,43 +1,43 @@
-# So you want to migrate...
+# So You Want to Migrate...
 
-If you have an account on a Bluesky mushroom PDS (`<mushroom>.*.bsky.network`) and want to migrate to another PDS (e.g. your own), this currently can be a daunting task. As of writing there are no automatic tools available (may change in the near future).
+If you have an account on a Bluesky mushroom PDS (`<mushroom>.*.bsky.network`) and want to migrate to another PDS (e.g., your own), this can currently be a daunting task. As of this writing, there are no fully automatic tools available (though this may change in the near future).
 
-Here is a write up of my experience moving my account to my own PDS. At that point is was already quite filled, here are some number for illustration:
--  ~10k posts
-- ~800 blobs, some of them short movies
-- a bit under 1 GB in total size
+Here is a writeup of my experience moving my account to my own PDS. At that point, it was already quite full. Here are some numbers for illustration:
+- ~10k posts
+- ~800 blobs, some of them short videos
+- A bit under 1 GB in total size
 
-This led to some problems while trying to migrate with the recommended automatic migration function in the [goat](https://github.com/bluesky-social/goat) command line tool. For posterity I'll describe here what I did, the problems I encountered and how to work around them with some explanations what is happening.
+This led to some problems while trying to migrate with the recommended automatic migration function in the [goat](https://github.com/bluesky-social/goat) command-line tool. For posterity, I'll describe what I did, the problems I encountered, and how to work around them with explanations of what is happening.
 
 ---
 
 First here are some useful links:
 
-Web based migration tools:
-- [ATP Airport](https://atpairport.com/) - "Your terminal for seamless AT Protocol PDS migration and backup." by [Roscoe Rubin-Rottenberg](https://bsky.app/profile/knotbin.com)
-- [PDS Moover](https://pdsmoover.com/) - Cow themed migration tool by [Bailey Townsend](https://bsky.app/profile/baileytownsend.dev)
+Web-based migration tools:
+- [ATP Airport](https://atpairport.com/) - "Your terminal for seamless AT Protocol PDS migration and backup" by [Roscoe Rubin-Rottenberg](https://bsky.app/profile/knotbin.com)
+- [PDS Moover](https://pdsmoover.com/) - Cow-themed migration tool by [Bailey Townsend](https://bsky.app/profile/baileytownsend.dev)
 
 General documentation:
 - [PDS Self-hosting](https://atproto.com/guides/self-hosting) - Official PDS self-host instructions
 - [GitHub PDS](https://github.com/bluesky-social/pds) - Official PDS reference implementation (Docker) with installation instructions
 - [Migration instructions](https://whtwnd.com/did:plc:44ybard66vv44zksje25o7dz/3l5ii332pf32u) by @bnewbold.net
 - [Adding recovery keys guide](https://whtwnd.com/bnewbold.net/3lj7jmt2ct72r) also by @bnewbold.net
-- [pdsls.dev](https://pdsls.dev) - super handy tool to inspect basically everything in atproto
-	- for starters just dump your handle in there
-	- feel free to click around, you cannot break anything without logging in first
-- [Handle Debugger](https://bsky-debug.app/handle) - check if your handle is valid
+- [pdsls.dev](https://pdsls.dev) - Super handy tool to inspect basically everything in atproto
+	- For starters, just enter your handle
+	- Feel free to click around; you cannot break anything without logging in first
+- [Handle Debugger](https://bsky-debug.app/handle) - Check if your handle is valid
 
 Optional links:
 - [GitHub PDS source](https://github.com/bluesky-social/atproto/tree/main/packages/pds) - TypeScript source code for the PDS reference implementation
 	- [Environment variables](https://github.com/bluesky-social/atproto/blob/main/packages/pds/src/config/env.ts) - All environment variables available for customization
-- [GitHub atproto scraper](https://github.com/mary-ext/atproto-scraping) - Scraped list of all known PDS, incl. self-hosted
-- [PDS directory](https://blue.mackuba.eu/directory/pdses) - Website listing known PDS with user count
-- [atproto browser](https://atproto-browser.vercel.app/) - Bare bones atproto browser
+- [GitHub atproto scraper](https://github.com/mary-ext/atproto-scraping) - Scraped list of all known PDS, including self-hosted
+- [PDS directory](https://blue.mackuba.eu/directory/pdses) - Website listing known PDS instances with user counts
+- [atproto browser](https://atproto-browser.vercel.app/) - Bare-bones atproto browser
 - [atp tools](https://atp.tools/) - Another useful atproto browser/tools implementation
 
 ---
 
-Now let's start. When I decided to migrate my account, I first had a look at it's current state with `pdsls.dev`:
+Now let's start. When I decided to migrate my account, I first looked at its current state with `pdsls.dev`:
 
 ```
 ID
@@ -54,18 +54,18 @@ Verification methods
     #atprotoz Q3shgqQdc1Rr2A3dTJTAPF2Mu2Qe6BhSCyPFC4Uk5WNPkUsr
 ```
 
-- `ID` - points to the [DID](https://web.plc.directory/spec/v0.1/did-plc) for my account. This ID fixed and must never change, all content (and follower) point to this ID
-	- The DID is points to a DID document that can get retrieved via [web.plc.directory](https://web.plc.directory/resolve)
-	- The DID document contains information where the account is hosted and which keys are valid, more about that later
-- `Identities` - is the first entry from the `alsoKnownAs` field of the DID document
-	- note the absence of `https://bsky.social` in this field, an account is always independent of Bluesky PBC
-- `Services` - points to the PDS instance which hosts the account
-- `Verification methods` - records for this account must be signed with this method (public key) to be valid
-	- invalid records might get ignored/discarded by the network
+- `ID` - Points to the [DID](https://web.plc.directory/spec/v0.1/did-plc) for my account. This ID is fixed and must never change; all content (and followers) point to this ID
+	- The DID points to a DID document that can be retrieved via [web.plc.directory](https://web.plc.directory/resolve)
+	- The DID document contains information about where the account is hosted and which keys are valid (more about that later)
+- `Identities` - The first entry from the `alsoKnownAs` field of the DID document
+	- Note the absence of `https://bsky.social` in this field; an account is always independent of Bluesky PBC
+- `Services` - Points to the PDS instance that hosts the account
+- `Verification methods` - Records for this account must be signed with this method (public key) to be valid
+	- Invalid records might be ignored/discarded by the network
 
 ---
 
-Next step is installing the `goat` command line tool. This requires a working Go environment. On my macOS laptop I used these steps:
+The next step is installing the `goat` command-line tool. This requires a working Go environment. On my macOS laptop, I used these steps:
 
 Assuming [Homebrew](https://brew.sh) is installed, this installs the Go compiler/environment:
 ```shell
@@ -75,29 +75,29 @@ This fetches, compiles, and installs the `goat` tool:
 ```shell
 go install github.com/bluesky-social/goat@latest
 ```
-This adds the path where compiled Go binares to the system lookup path:
+This adds the path where compiled Go binaries are stored to the system lookup path:
 ```shell
 export PATH=$PATH:$HOME/go/bin
 ```
 
 ---
 
-Now we can get some information about the account. Before I started the migration process, I decided to add a recovery key to my account/DID document, just to be safe (also to get a feel for how this works), see the [guide](https://whtwnd.com/bnewbold.net/3lj7jmt2ct72r) already mentioned above.
+Now we can get some information about the account. Before I started the migration process, I decided to add a recovery key to my account/DID document, just to be safe (and also to get a feel for how this works). See the [guide](https://whtwnd.com/bnewbold.net/3lj7jmt2ct72r) already mentioned above.
 
-> [!note]
-> Why recovery keys are important?
+> [!NOTE]
+> **Why are recovery keys important?**
 >
-> When you create an account the PDS holds keys for signing your records. This means a rogue operator PDS could overtake your account, or more mundane things like the PDS loses all data including your siging keys could happen. In this case a recovery key gives you at least control back over your identity (including your followers). In such a catastrophic scenario you can restore a backup of your account on a different PDS and initiate PLC operation to point it at that new PDS with such a recovery key.
+> When you create an account, the PDS holds keys for signing your records. This means a rogue PDS operator could overtake your account, or more mundane things like the PDS losing all data including your signing keys could happen. In this case, a recovery key gives you at least control back over your identity (including your followers). In such a catastrophic scenario, you can restore a backup of your account on a different PDS and initiate a PLC operation to point it at that new PDS with such a recovery key.
 
-First I have to login to my account:
+First, I have to log in to my account:
 ```shell
 goat account login -u fry69.dev -p '[old_pw]'
 ```
-> [!warning]
-> Once logged in destructive operations with `goat` are possible, like deleting records.
+> [!WARNING]
+> Once logged in, destructive operations with `goat` are possible, like deleting records.
 > PLC operations (changing the DID document) require a separate token via email.
 
-This commands give an overview of the statue of the account, included if it is active, how many records/blobs it references:
+This command gives an overview of the status of the account, including whether it is active and how many records/blobs it references:
 ```shell
 $ goat account status
 DID: did:plc:3zxgigfubnv4f47ftmqdsbal
@@ -142,7 +142,7 @@ trying to refresh auth from password...
 
 Here is the workflow for adding a recovery key to the DID document:
 
-Save the current DID document to compare it later:
+Save the current DID document to compare later:
 ```
 $ goat account plc current > plc-current.json
 ```
@@ -153,13 +153,13 @@ $ cat key.txt
 Key Type: P-256 / secp256r1 / ES256 private key
 Secret Key (Multibase Syntax): save this securely (eg, add to password manager)
 	[secret key]
-Public Key (DID Key Syntax): share or publish this (eg, in DID document)
+Public Key (DID Key Syntax): share or publish this (e.g., in DID document)
 	did:key:zDnaenr1u5hpX7AznPRZ2kgTzpoFdEYRiPrZMyzmXFGFgGkTY
 ```
-> [!warning]
-> Keep the secret key safe, whoever has control of this key can take over your account
+> [!WARNING]
+> Keep the secret key safe. Whoever has control of this key can take over your account.
 
-Now I tried to add the key to my DID document, but the token I used was already expired (maybe less than an hour lifetime?):
+Now I tried to add the key to my DID document, but the token I used was already expired (tokens may have less than an hour lifetime):
 ```
 $ goat account plc add-rotation-key --token [via mail] did:key:zDnaenr1u5hpX7AznPRZ2kgTzpoFdEYRiPrZMyzmXFGFgGkTY
 400: ExpiredToken: Token is expired
@@ -174,7 +174,7 @@ Now the command works:
 $ goat account plc add-rotation-key --token [via mail] did:key:zDnaenr1u5hpX7AznPRZ2kgTzpoFdEYRiPrZMyzmXFGFgGkTY
 Success
 ```
-Get the current, changed DID document and compare it to the old one, to make sure that recovery key is in place and nothing else changed:
+Get the current, changed DID document and compare it to the old one to make sure the recovery key is in place and nothing else changed:
 ```
 $ goat account plc current > plc-current-20250429.json
 $ diff -u plc-current.json plc-current-20250429.json
@@ -194,13 +194,13 @@ $ diff -u plc-current.json plc-current-20250429.json
 
 ---
 
-That is it. Next step is the migration process:
+That's it. The next step is the migration process:
 
 If not already logged into the mushroom account:
 ```shell
 $ goat account login -u fry69.dev -p '[old_pw]'
 ```
-First I tried the automated `goat account migrate` approach, for this wrote a little script:
+First, I tried the automated `goat account migrate` approach. For this, I wrote a little script:
 ```shell
 #!/usr/bin/env bash
 
@@ -229,7 +229,7 @@ $ ./migration.sh
 2025/04/28 16:15:35 WARN request failed subsystem=RobustHTTPClient error="Post \"https://altq.net/xrpc/com.atproto.repo.importRepo\": net/http: request canceled" method=POST url=https://altq.net/xrpc/com.atproto.repo.importRepo
 error: failed importing repo: request failed: Post "https://altq.net/xrpc/com.atproto.repo.importRepo": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
 ```
-The migration guide says `goat` commands can get repeated/retried if something fails, but this does not work for the automatic migration process:
+The migration guide says `goat` commands can be repeated/retried if something fails, but this does not work for the automatic migration process:
 ```shell
 $ ./migration.sh
 2025/04/28 16:43:57 INFO new host serviceDID=did:web:altq.net url=https://altq.net
@@ -238,18 +238,18 @@ error: failed creating new account: XRPC ERROR 400: AlreadyExists: Repo already 
 ```
 Even if I delete the stale inactive account and try the automation process again, I run into the same `timeout` problem as above.
 
-> [!note]
-> How do I delete a stale account?
+> [!NOTE]
+> **How do I delete a stale account?**
 >
-> In my case I deleted the stale account directly on my PDS server with this command:
+> In my case, I deleted the stale account directly on my PDS server with this command:
 >```shell
 >pdsadmin account delete did:plc:3zxgigfubnv4f47ftmqdsbal
 >```
-> The `did:plc` DID must be the real DID. This is safe, since this is only a stale, inactive copy of my real account, which still resided on the mushroom PDS at this point.
+> The `did:plc` DID must be the real DID. This is safe since this is only a stale, inactive copy of my real account, which still resided on the mushroom PDS at this point.
 
-So I have to use the manual migration process, which is a little more involved. First make sure that any stale account is removed, see above. Also make sure you are logged into the mushroom account with `goat`.
+So I have to use the manual migration process, which is a little more involved. First, make sure that any stale account is removed (see above). Also make sure you are logged into the mushroom account with `goat`.
 
-Now let's have a look at my PDS first:
+Now let's have a look at my PDS:
 ```shell
 $ goat pds describe https://altq.net
 {
@@ -278,18 +278,18 @@ $ goat pds describe https://bsky.social
   "phoneVerificationRequired": true
 }
 ```
-Looks good, now let's start exporting the data from the mushroom PDS, first the repository. It contains all records (posts, likes, accounts you follow and all other non-Bluesky records), but it does **not** contain blobs (binary large objects, images, short movies):
+Looks good. Now let's start exporting the data from the mushroom PDS, starting with the repository. It contains all records (posts, likes, accounts you follow, and all other non-Bluesky records), but it does **not** contain blobs (binary large objects: images, short videos):
 ```shell
 $ goat repo export fry69.dev
 downloading from https://cordyceps.us-west.host.bsky.network to: fry69.dev.20250504094733.car
 ```
-The CAR file this generated is about ~30 MB in size for my ~10k posts and other records.
-> [!note]
-> What the heck is CAR?
+The CAR file this generated is about 30 MB in size for my ~10k posts and other records.
+> [!NOTE]
+> **What the heck is CAR?**
 >
-> The standard file format for storing data objects is Content Addressable aRchives (CAR). The standard repository export format for atproto repositories is [CAR v1](https://ipld.io/specs/transport/car/carv1/), which have file suffix `.car` and mimetype `application/vnd.ipld.car`. See [here](https://atproto.com/specs/repository#car-file-serialization) for more details.
+> The standard file format for storing data objects is Content Addressable aRchives (CAR). The standard repository export format for atproto repositories is [CAR v1](https://ipld.io/specs/transport/car/carv1/), which have file suffix `.car` and MIME type `application/vnd.ipld.car`. See [here](https://atproto.com/specs/repository#car-file-serialization) for more details.
 
-Now it is time to download my ~800 (~1 GB in size total) blobs. This is a slow process, it took ~1 hour with a fast down link, the limiting factor is the mushroom PDS. And of course it failed in the middle of the process:
+Now it's time to download my ~800 blobs (~1 GB total size). This is a slow process—it took ~1 hour with a fast downlink. The limiting factor is the mushroom PDS. And of course, it failed in the middle of the process:
 ```shell
 $ goat blob export fry69.dev
 downloading blobs to: fry69.dev_blobs
@@ -299,7 +299,7 @@ fry69.dev_blobs/bafkreia2gocqxxxx7amdujd6ycqhwlomnsoqtfrekef4mbblfg6cll7kve	down
 error: request failed: Get "https://cordyceps.us-west.host.bsky.network/xrpc/com.atproto.sync.getBlob?cid=bafkreiet7zkowtbwaz7s3fdneuyrqbegv45uidbzvzre33su5j3xsq5w24&did=did%3Aplc%3A3zxgigfubnv4f47ftmqdsbal": GET https://cordyceps.us-west.host.bsky.network/xrpc/com.atproto.sync.getBlob?cid=bafkreiet7zkowtbwaz7s3fdneuyrqbegv45uidbzvzre33su5j3xsq5w24&did=did%3Aplc%3A3zxgigfubnv4f47ftmqdsbal giving up after 1 attempt(s): context deadline exceeded (Client.Timeout exceeded while awaiting headers)
 
 ```
-Thankfully this command is repeatable and will skip already downloaded blobs found on disk. It proceeded to the end in the second attempt:
+Thankfully, this command is repeatable and will skip already-downloaded blobs found on disk. It proceeded to the end on the second attempt:
 ```shell
 $ goat blob export fry69.dev
 downloading blobs to: fry69.dev_blobs
@@ -307,46 +307,46 @@ fry69.dev_blobs/bafkreia2gocqxxxx7amdujd6ycqhwlomnsoqtfrekef4mbblfg6cll7kve	exis
 [...]
 ```
 
-With the repository and the blobs safe on the local disk, only the proprietary preferences for the Bluesky AppView are missing. Compared to the other parts, this is a tiny object, you can view with e.g. [jq](https://jqlang.org/). This command downloads the preferences:
+With the repository and the blobs safe on the local disk, only the proprietary preferences for the Bluesky AppView are missing. Compared to the other parts, this is a tiny object you can view with, e.g., [jq](https://jqlang.org/). This command downloads the preferences:
 ```shell
 $ goat bsky prefs export > prefs.json
 ```
-Just to be sure my account repository did not get modified in the process, I requested another export and compared the second one to the first one. They were identical (no surprise here):
+Just to be sure my account repository did not get modified in the process, I requested another export and compared the second one to the first one. They were identical (no surprise):
 ```
 $ goat repo export fry69.dev
 downloading from https://cordyceps.us-west.host.bsky.network to: fry69.dev.20250504103731.car
 $ cmp fry69.dev.20250504094733.car fry69.dev.20250504103731.car # [no output -> identical]
 ```
 
-The next step is to create a fresh (deactivated) account on my PDS. The AT Protocol requires requesting a service token for this. This can get requested and stored in an environment variable (it is a rather long token) with this command (requires login, but **not** on the new PDS, mushroom PDS login is fine):
+The next step is to create a fresh (deactivated) account on my PDS. The AT Protocol requires requesting a service token for this. This can be requested and stored in an environment variable (it's a rather long token) with this command (requires login, but **not** on the new PDS—mushroom PDS login is fine):
 ```shell
 $ SERVICEAUTH=$(goat account service-auth --lxm com.atproto.server.createAccount --duration-sec 3600 --aud "did:web:altq.net")
 ```
-This commands creates the new account:
+This command creates the new account:
 ```shell
 $ goat account create --service-auth $SERVICEAUTH --pds-host "https://altq.net" --existing-did "did:plc:3zxgigfubnv4f47ftmqdsbal" --handle fry69.altq.net --password "[new_pw]" --email "fry-altq@fry69.dev" --invite-code altq-net-[...]
 Success!
 DID: did:plc:3zxgigfubnv4f47ftmqdsbal
 Handle: fry69.altq.net
 ```
-> [!note]
-> It may be possible to reuse the existing handle (`fry69.dev`) and email address, I used different ones, because I was unsure. I'd love feedback on this.
+> [!NOTE]
+> It may be possible to reuse the existing handle (`fry69.dev`) and email address. I used different ones because I was unsure. I'd love feedback on this.
 
-With this fresh account in place it is time to login to the new PDS and import the data:
-> [!warning]
+With this fresh account in place, it's time to log in to the new PDS and import the data:
+> [!WARNING]
 > Login change
 
 ```
 $ goat account login --pds-host "https://altq.net" -u "did:plc:3zxgigfubnv4f47ftmqdsbal" -p "[new_pw]"
 ```
 
-First step is to upload the repository with the posts, likes, etc. Of course this produced an error:
+The first step is to upload the repository with the posts, likes, etc. Of course, this produced an error:
 ```shell
 $ goat repo import ./fry69.dev.20250504103731.car
 2025/05/04 10:58:18 WARN request failed subsystem=RobustHTTPClient error="Post \"https://altq.net/xrpc/com.atproto.repo.importRepo\": net/http: request canceled" method=POST url=https://altq.net/xrpc/com.atproto.repo.importRepo
 error: failed to import repo: request failed: Post "https://altq.net/xrpc/com.atproto.repo.importRepo": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
 ```
-Panic! What happened? Let's check! This command shows the status of the new (inactive) account on the new PDS:
+Panic! What happened? Let's check. This command shows the status of the new (inactive) account on the new PDS:
 ```shell
 $ goat account status
 DID: did:plc:3zxgigfubnv4f47ftmqdsbal
@@ -363,7 +363,7 @@ Host: https://altq.net
   "validDid": false
 }
 ```
-Hmm. Looks fine to me. To be safe I re-ran the import command. This time there was no error. But also the account repository did not change in a noticeable way:
+Hmm, looks fine to me. To be safe, I re-ran the import command. This time there was no error, but the account repository also did not change in a noticeable way:
 ```shell
 $ goat repo import ./fry69.dev.20250504103731.car
 $ goat account status
@@ -381,19 +381,19 @@ Host: https://altq.net
   "validDid": false
 }
 ```
-With the repository in place it is possible to ask the PDS which blobs are missing with this command (huge output):
+With the repository in place, it's possible to ask the PDS which blobs are missing with this command (huge output):
 ```shell
 $ goat account missing-blobs
 bafkreia2gocqxxxx7amdujd6ycqhwlomnsoqtfrekef4mbblfg6cll7kve	at://did:plc:3zxgigfubnv4f47ftmqdsbal/app.bsky.feed.post/3lmevjd26m22x
 [...]
 ```
-To upload the missing blobs from the local disk to the PDS I wrote this command. This here checks if it does what it should (assuming the blobs are located in the folder `fry69.dev_blobs`):
+To upload the missing blobs from the local disk to the PDS, I wrote this command. This checks if it does what it should (assuming the blobs are located in the folder `fry69.dev_blobs`):
 ```shell
 $ find fry69.dev_blobs -type f -exec echo goat blob upload {} \;
 goat blob upload fry69.dev_blobs/bafkreifjp4eprt6l43xlxzf7dj2ofv6apnb6loludnujaamv3sth7a5thq
 [...]
 ```
-Now run this command without the `echo`, double check the output after running this, it will not automatically retry or list errors separately:
+Now run this command without the `echo`. Double-check the output after running this—it will not automatically retry or list errors separately:
 ```shell
 $ find fry69.dev_blobs -type f -exec goat blob upload {} \;
 {
@@ -406,7 +406,7 @@ $ find fry69.dev_blobs -type f -exec goat blob upload {} \;
 }
 [...]
 ```
-Of course there was an error in the middle of the upload:
+Of course, there was an error in the middle of the upload:
 ```shell
 2025/05/04 11:12:14 WARN request failed subsystem=RobustHTTPClient error="Post \"https://altq.net/xrpc/com.atproto.repo.uploadBlob\": net/http: request canceled" method=POST url=https://altq.net/xrpc/com.atproto.repo.uploadBlob
 error: request failed: Post "https://altq.net/xrpc/com.atproto.repo.uploadBlob": POST https://altq.net/xrpc/com.atproto.repo.uploadBlob giving up after 3 attempt(s): context deadline exceeded (Client.Timeout exceeded while awaiting headers)
@@ -417,12 +417,17 @@ $ goat blob upload fry69.dev_blobs/bafkreifh3ix2tgaqt6hkjp222kreejcpgypebanr5tj6
 2025/05/04 11:21:59 WARN request failed subsystem=RobustHTTPClient error="Post \"https://altq.net/xrpc/com.atproto.repo.uploadBlob\": net/http: request canceled" method=POST url=https://altq.net/xrpc/com.atproto.repo.uploadBlob
 error: request failed: Post "https://altq.net/xrpc/com.atproto.repo.uploadBlob": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
 ```
-> [!note]
-> Hitting the PDS Upload Limit
+> [!NOTE]
+> **Hitting the PDS Upload Limit**
 >
-> This led to a side quest finding out that my PDS was still set to the original 50 MB upload limit, but the mushroom PDS raised this to 100 MB and 3 minute length for movies a while after I set up the PDS. Solution for this problem is changing the following line in the `/pds/pds.env` file on the PDS server:
+> This led to a side quest where I found out that my PDS was still set to the original 50 MB upload limit, but the mushroom PDS raised this to 100 MB and 3-minute length for videos a while after I set up the PDS. The solution for this problem is changing the following line in the `/pds/pds.env` file on the PDS server:
 >```shell
->PDS_BLOB_UPLOAD_LIMIT=104857600
+>```shell
+PDS_BLOB_UPLOAD_LIMIT=104857600
+```
+> Don't forget to restart the PDS afterward (reboot or `systemctl restart pds`).
+
+With that fix in place, the upload of the missing blob worked fine:
 >```
 > Don't forget to restart the PDS (reboot or `systemctl restart pds`) afterwards.
 
@@ -459,7 +464,7 @@ $ goat account missing-blobs # no output means no blobs are missing, yay!
 
 ---
 
-The final step is to change the DID document for the account to point to the new PDS (with also has a different verification method/signing key). This may a bit logging in and out between the two accounts if things do not work out. First check the current state of the DID document for new account on the PDS (note the `recommended` as it is not yet uploaded to the DID registry):
+The final step is to change the DID document for the account to point to the new PDS (which also has a different verification method/signing key). This may require a bit of logging in and out between the two accounts if things don't work out. First, check the current state of the DID document for the new account on the PDS (note the `recommended`—it is not yet uploaded to the DID registry):
 
 ```shell
 $ goat account plc recommended > plc_new.json
@@ -506,7 +511,7 @@ $ goat account plc current
   }
 }
 ```
-Now edit the `plc_new.json` with you favorite editor and add e.g. the additional recovery key to the proposed new DID document (note that I got carried away and changed the `alsoKnownAs` field, do not do this):
+Now edit the `plc_new.json` with your favorite editor and add, e.g., the additional recovery key to the proposed new DID document (note that I got carried away and changed the `alsoKnownAs` field—do not do this):
 ```shell
 $ cat plc_new.json
 {
@@ -528,7 +533,7 @@ $ cat plc_new.json
   }
 }
 ```
-Now it is necessary to login to the mushroom account, which has a pointer to the valid DID document, request a token from the PLC (you'll receive it via mail) and sign the new DID document:
+Now it's necessary to log in to the mushroom account, which has a pointer to the valid DID document, request a token from the PLC (you'll receive it via email), and sign the new DID document:
 ```shell
 $ goat account login -u fry69.dev -p '[old_pw]'
 $ goat account plc request-token
@@ -560,18 +565,18 @@ $ cat plc_new_signed.json
   "sig": "zPhjYO_DMby4Ky-mHhIjLTAv4hrhiGQtofn0QoLMjRtj_s64-dZPVZ8kQSe1WOgzScwHVa5jL6dy-NzIIjzaww"
 }
 ```
-Now login to the new PDS before submitting (otherwise you'll get an error about rotation keys):
+Now log in to the new PDS before submitting (otherwise you'll get an error about rotation keys):
 ```shell
 $ goat account login --pds-host "https://altq.net" -u "did:plc:3zxgigfubnv4f47ftmqdsbal" -p "[new_pw]"
 ```
-Now let's submit the new DID document. Of it failed because I was dumb:
-> [!warning]
+Now let's submit the new DID document. Of course, it failed because I made a mistake:
+> [!WARNING]
 > PLC Operation / DID Document Update Ahead
 ```shell
 $ goat account plc submit ./plc_new_signed.json
 error: failed submitting PLC op via PDS: XRPC ERROR 400: InvalidRequest: Incorrect handle in alsoKnownAs
 ```
-And no, just changing the `alsoKnownAs` field to the correct value does not work, as this invalidates the signature (as expected, but good to see this working as intended):
+And no, just changing the `alsoKnownAs` field to the correct value doesn't work, as this invalidates the signature (as expected, but good to see this working as intended):
 ```shell
 $ goat account plc submit ./plc_new_signed.json
 error: failed submitting PLC op via PDS: XRPC ERROR 400: InvalidRequest: Invalid signature on op: {"type":"plc_operation","rotationKeys":["did:key:zQ3shcFsHHoawNae6vDx4HNamQVZEVrcQ1Uc2gwi5f9qxR6Xi","did:key:zDnaenr1u5hpX7AznPRZ2kgTzpoFdEYRiPrZMyzmXFGFgGkTY"],"verificationMethods":{"atproto":"did:key:zQ3shSuymtEUXUsN1pyZACZ6WGk3Tktxe4s1JyL4CSWLRWaZa"},"alsoKnownAs":["at://fry69.altq.net"],"services":{"atproto_pds":{"type":"AtprotoPersonalDataServer","endpoint":"https://altq.net"}},"prev":
@@ -596,12 +601,12 @@ Host: https://altq.net
 ```
 🎉 `validDid: true` yay! 🎉
 
-But my handle now was `@fry69.altq.net`. This was easily solvable by using the using the change handle feature in the official web client to set it back to `@fry69.dev`.
+But my handle was now `@fry69.altq.net`. This was easily solvable by using the change handle feature in the official web client to set it back to `@fry69.dev`.
 
 > [!NOTE]
-> What happens with the old account on the mushroom PDS?
+> **What happens with the old account on the mushroom PDS?**
 >
-> I am glad you asked. This is currently unclear. If you login to your mushroom account with the official https://bsky.app/ web client (this is still possible, choose Bluesky social as your host during login), you will notice that the timeline will not load. But you can get to the settings page and from there to the account and try do delete your account. This will not work, probably because the deletetion process will try to delete your chats, bookmarks and mutes (which you certainly want to keep), or for some other reason.
+> I'm glad you asked. This is currently unclear. If you log in to your mushroom account with the official https://bsky.app/ web client (this is still possible—choose Bluesky Social as your host during login), you will notice that the timeline will not load. But you can get to the settings page and from there to the account and try to delete your account. This will not work, probably because the deletion process will try to delete your chats, bookmarks, and mutes (which you certainly want to keep), or for some other reason.
 
 You can deactivate your mushroom account in the web client or with `goat` like this:
 ```shell
@@ -609,6 +614,6 @@ $ goat account login -u fry69.dev -p '[old_pw]' --pds-host "https://cordyceps.us
 $ goat account deactivate
 ```
 
-If you read until here and spotted a problem, typo or want to leave a different comment/suggestion: Please file an [issue](https://github.com/fry69/bluesky-migration-guide/issues/new) in the GitHub [repository](https://github.com/fry69/bluesky-migration-guide) for this guide, or [ping me](https://bsky.app/profile/fry69.dev) on Bluesky.
+If you read until here and spotted a problem, typo, or want to leave a different comment/suggestion: Please file an [issue](https://github.com/fry69/bluesky-migration-guide/issues/new) in the GitHub [repository](https://github.com/fry69/bluesky-migration-guide) for this guide, or [ping me](https://bsky.app/profile/fry69.dev) on Bluesky.
 
-Thank you and happy, less troublesome migration.
+Thank you and happy, less troublesome, migration!
