@@ -1,3 +1,7 @@
+### 2025-10-07
+
+- add footer with links
+
 ### 2025-10-06
 
 - minor consistency cleanup

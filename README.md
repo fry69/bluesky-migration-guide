@@ -608,3 +608,7 @@ You can deactivate your mushroom account in the web client or with `goat` like t
 $ goat account login -u fry69.dev -p '[old_pw]' --pds-host "https://cordyceps.us-west.host.bsky.network"
 $ goat account deactivate
 ```
+
+If you read until here and spotted a problem, typo or want to leave a different comment/suggestion: Please file an [issue](https://github.com/fry69/bluesky-migration-guide/issues/new) in the GitHub [repository](https://github.com/fry69/bluesky-migration-guide) for this guide, or [ping me](https://bsky.app/profile/fry69.dev) on Bluesky.
+
+Thank you and happy, less troublesome migration.
