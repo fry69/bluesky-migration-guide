@@ -21,9 +21,9 @@ Web-based migration tools:
 General documentation:
 - [PDS Self-hosting](https://atproto.com/guides/self-hosting) - Official PDS self-host instructions
 - [GitHub PDS](https://github.com/bluesky-social/pds) - Official PDS reference implementation (Docker) with installation instructions
-- [Migration instructions](https://whtwnd.com/did:plc:44ybard66vv44zksje25o7dz/3l5ii332pf32u) by @bnewbold.net
-- [Adding recovery keys guide](https://whtwnd.com/bnewbold.net/3lj7jmt2ct72r) also by @bnewbold.net
-- [pdsls.dev](https://pdsls.dev) - Super handy tool to inspect basically everything in atproto
+- [Migration instructions](https://whtwnd.com/did:plc:44ybard66vv44zksje25o7dz/3l5ii332pf32u) by [Bryan Newbold](https://bsky.app/profile/bnewbold.net)
+- [Adding recovery keys guide](https://whtwnd.com/bnewbold.net/3lj7jmt2ct72r) also by [Bryan Newbold](https://bsky.app/profile/bnewbold.net)
+- [pdsls.dev](https://pdsls.dev) - Super handy tool to inspect basically everything in atproto by [juliet](https://bsky.app/profile/juli.ee)
 	- For starters, just enter your handle
 	- Feel free to click around; you cannot break anything without logging in first
 - [Handle Debugger](https://bsky-debug.app/handle) - Check if your handle is valid

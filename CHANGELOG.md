@@ -4,6 +4,8 @@
 - complete overhaul for style and wording
 - update intro mentioning existing web-based migration tools
 - add Blacksky's tektite.cc migration service
+- hotlink @bnewbold (oversight, sorry)
+- dito juliet (pdsls.dev)
 
 ### 2025-10-06
 
