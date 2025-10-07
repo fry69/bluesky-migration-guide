@@ -422,14 +422,9 @@ error: request failed: Post "https://altq.net/xrpc/com.atproto.repo.uploadBlob":
 >
 > This led to a side quest where I found out that my PDS was still set to the original 50 MB upload limit, but the mushroom PDS raised this to 100 MB and 3-minute length for videos a while after I set up the PDS. The solution for this problem is changing the following line in the `/pds/pds.env` file on the PDS server:
 >```shell
->```shell
-PDS_BLOB_UPLOAD_LIMIT=104857600
-```
-> Don't forget to restart the PDS afterward (reboot or `systemctl restart pds`).
-
-With that fix in place, the upload of the missing blob worked fine:
+>PDS_BLOB_UPLOAD_LIMIT=104857600
 >```
-> Don't forget to restart the PDS (reboot or `systemctl restart pds`) afterwards.
+> Don't forget to restart the PDS afterward (reboot or `systemctl restart pds`).
 
 With that fix in place, the upload of the missing blob worked fine:
 ```shell
