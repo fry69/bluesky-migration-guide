@@ -6,6 +6,7 @@
 - add Blacksky's tektite.cc migration service
 - hotlink @bnewbold (oversight, sorry)
 - dito juliet (pdsls.dev)
+- add missing language markers to code blocks
 
 ### 2025-10-06
 

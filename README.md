@@ -144,11 +144,11 @@ trying to refresh auth from password...
 Here is the workflow for adding a recovery key to the DID document:
 
 Save the current DID document to compare later:
-```
+```shell
 $ goat account plc current > plc-current.json
 ```
 Generate a recovery key and (optionally) save it in a file:
-```
+```shell
 $ goat key generate > key.txt
 $ cat key.txt
 Key Type: P-256 / secp256r1 / ES256 private key
@@ -161,22 +161,22 @@ Public Key (DID Key Syntax): share or publish this (e.g., in DID document)
 > Keep the secret key safe. Whoever has control of this key can take over your account.
 
 Now I tried to add the key to my DID document, but the token I used was already expired (tokens may have less than an hour lifetime):
-```
+```shell
 $ goat account plc add-rotation-key --token [via mail] did:key:zDnaenr1u5hpX7AznPRZ2kgTzpoFdEYRiPrZMyzmXFGFgGkTY
 400: ExpiredToken: Token is expired
 ```
 This command requests a fresh token:
-```
+```shell
 $ goat account plc request-token
 Success; check email for token.
 ```
 Now the command works:
-```
+```shell
 $ goat account plc add-rotation-key --token [via mail] did:key:zDnaenr1u5hpX7AznPRZ2kgTzpoFdEYRiPrZMyzmXFGFgGkTY
 Success
 ```
 Get the current, changed DID document and compare it to the old one to make sure the recovery key is in place and nothing else changed:
-```
+```diff
 $ goat account plc current > plc-current-20250429.json
 $ diff -u plc-current.json plc-current-20250429.json
 --- plc-current.json	2025-04-29 07:56:56
@@ -313,7 +313,7 @@ With the repository and the blobs safe on the local disk, only the proprietary p
 $ goat bsky prefs export > prefs.json
 ```
 Just to be sure my account repository did not get modified in the process, I requested another export and compared the second one to the first one. They were identical (no surprise):
-```
+```shell
 $ goat repo export fry69.dev
 downloading from https://cordyceps.us-west.host.bsky.network to: fry69.dev.20250504103731.car
 $ cmp fry69.dev.20250504094733.car fry69.dev.20250504103731.car # [no output -> identical]
@@ -337,7 +337,7 @@ With this fresh account in place, it's time to log in to the new PDS and import 
 > [!WARNING]
 > Login change
 
-```
+```shell
 $ goat account login --pds-host "https://altq.net" -u "did:plc:3zxgigfubnv4f47ftmqdsbal" -p "[new_pw]"
 ```
 
