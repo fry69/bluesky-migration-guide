@@ -1,6 +1,6 @@
 # So You Want to Migrate...
 
-If you have an account on a Bluesky mushroom PDS (`<mushroom>.*.bsky.network`) and want to migrate to another PDS (e.g., your own), this can currently be a daunting task. As of this writing, there are no fully automatic tools available (though this may change in the near future).
+If you have an account on a Bluesky mushroom PDS (`<mushroom>.*.bsky.network`) and want to migrate to another PDS (e.g., your own), this can currently be a daunting task. As of this writing, there are a few web-based migration tools available, but even with those you might end up in a situation where you have to resort to a manual migration process.
 
 Here is a writeup of my experience moving my account to my own PDS. At that point, it was already quite full. Here are some numbers for illustration:
 - ~10k posts

@@ -2,6 +2,7 @@
 
 - add footer with links
 - complete overhaul for style and wording
+- update intro mentioning existing web-based migration tools
 
 ### 2025-10-06
 
