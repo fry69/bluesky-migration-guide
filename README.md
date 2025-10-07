@@ -16,6 +16,7 @@ First here are some useful links:
 Web-based migration tools:
 - [ATP Airport](https://atpairport.com/) - "Your terminal for seamless AT Protocol PDS migration and backup" by [Roscoe Rubin-Rottenberg](https://bsky.app/profile/knotbin.com)
 - [PDS Moover](https://pdsmoover.com/) - Cow-themed migration tool by [Bailey Townsend](https://bsky.app/profile/baileytownsend.dev)
+- [Tektite](https://tektite.cc/) - Tektite Migration Service by [Blacksky](https://bsky.app/profile/tektite.cc)
 
 General documentation:
 - [PDS Self-hosting](https://atproto.com/guides/self-hosting) - Official PDS self-host instructions

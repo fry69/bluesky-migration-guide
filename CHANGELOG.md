@@ -3,6 +3,7 @@
 - add footer with links
 - complete overhaul for style and wording
 - update intro mentioning existing web-based migration tools
+- add Blacksky's tektite.cc migration service
 
 ### 2025-10-06
 
